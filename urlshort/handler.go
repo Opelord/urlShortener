@@ -2,6 +2,7 @@ package urlshort
 
 import (
 	"encoding/json"
+	"errors"
 	"gopkg.in/yaml.v2"
 	"net/http"
 )
@@ -45,7 +46,7 @@ func MapHandler(pathsToUrls map[string]string, fallback http.Handler) http.Handl
 // See MapHandler to create a similar http.HandlerFunc via
 // a mapping of paths to urls.
 func YAMLHandler(yml []byte, fallback http.Handler) (http.HandlerFunc, error) {
-	parsedYaml, err := parseYAML(yml)
+	parsedYaml, err := parseFile(yml, "yaml")
 	if err != nil {
 		return nil, err
 	}
@@ -53,15 +54,16 @@ func YAMLHandler(yml []byte, fallback http.Handler) (http.HandlerFunc, error) {
 	return MapHandler(pathMap, fallback), nil
 }
 
-func parseYAML(yml []byte) ([]PathsAndUrls, error){
-	var pathsToUrls []PathsAndUrls
-	err := yaml.Unmarshal(yml, &pathsToUrls)
-	return pathsToUrls, err
-}
+// parseJSON and parseYAML merge to one function
+//func parseYAML(yml []byte) ([]PathsAndUrls, error){
+//	var pathsToUrls []PathsAndUrls
+//	err := yaml.Unmarshal(yml, &pathsToUrls)
+//	return pathsToUrls, err
+//}
 
 // Below are two functions that are analogous to Yaml functions
 func JSONHandler(jsn []byte, fallback http.Handler) (http.HandlerFunc, error) {
-	parsedJson, err := parseJSON(jsn)
+	parsedJson, err := parseFile(jsn, "json")
 	if err != nil{
 		return nil, err
 	}
@@ -69,11 +71,12 @@ func JSONHandler(jsn []byte, fallback http.Handler) (http.HandlerFunc, error) {
 	return MapHandler(pathMap, fallback), nil
 }
 
-func parseJSON(jsn []byte) ([]PathsAndUrls, error){
-	var pathsToUrls []PathsAndUrls
-	err := json.Unmarshal(jsn, &pathsToUrls)
-	return pathsToUrls, err
-}
+// parseJSON and parseYAML merge to one function
+//func parseJSON(jsn []byte) ([]PathsAndUrls, error){
+//	var pathsToUrls []PathsAndUrls
+//	err := json.Unmarshal(jsn, &pathsToUrls)
+//	return pathsToUrls, err
+//}
 
 // buildMap translates parsed json and yaml files
 // to string map that can be handled by MapHandler function
@@ -85,3 +88,16 @@ func buildMap(parsed []PathsAndUrls) map[string]string {
 	return m
 }
 
+func parseFile(file []byte, fileType string) ([]PathsAndUrls, error){
+	var pathsToUrls []PathsAndUrls
+	var err error
+	switch fileType{
+	case "yaml":
+		err = yaml.Unmarshal(file, &pathsToUrls)
+	case "json":
+		err = json.Unmarshal(file, &pathsToUrls)
+	default:
+		err = errors.New("Something wrong with parsing")
+	}
+	return pathsToUrls, err
+}
