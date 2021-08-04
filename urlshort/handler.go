@@ -59,14 +59,7 @@ func parseYAML(yml []byte) ([]PathsAndUrls, error){
 	return pathsToUrls, err
 }
 
-func buildMap(parsed []PathsAndUrls) map[string]string {
-	m := make(map[string]string)
-	for _, entry := range parsed{
-		m[entry.Path] = entry.Url
-	}
-	return m
-}
-
+// Below are two functions that are analogous to Yaml functions
 func JSONHandler(jsn []byte, fallback http.Handler) (http.HandlerFunc, error) {
 	parsedJson, err := parseJSON(jsn)
 	if err != nil{
@@ -81,3 +74,14 @@ func parseJSON(jsn []byte) ([]PathsAndUrls, error){
 	err := json.Unmarshal(jsn, &pathsToUrls)
 	return pathsToUrls, err
 }
+
+// buildMap translates parsed json and yaml files
+// to string map that can be handled by MapHandler function
+func buildMap(parsed []PathsAndUrls) map[string]string {
+	m := make(map[string]string)
+	for _, entry := range parsed{
+		m[entry.Path] = entry.Url
+	}
+	return m
+}
+

@@ -21,7 +21,6 @@ func main() {
 		"/yaml-godoc":     "https://godoc.org/gopkg.in/yaml.v2",
 	}
 	mapHandler := urlshort.MapHandler(pathsToUrls, mux)
-	fmt.Println(mapHandler)
 
 	// Build the YAMLHandler using the mapHandler as the
 	// fallback
@@ -44,8 +43,12 @@ func main() {
 		fmt.Println("Failed to read the file")
 		return
 	}
+
+	// Getting file extension information
 	extensionRunes := []rune(*fileName)
 	extensionString := string(extensionRunes[len(extensionRunes)-4:])
+
+	// Depending on file type use proper Handler
 	switch extensionString {
 	case "yaml":
 		yamlHandler, err := urlshort.YAMLHandler([]byte(file), mapHandler)
