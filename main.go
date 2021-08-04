@@ -9,7 +9,7 @@ import (
 	"urlShortener/urlshort"
 )
 
-var fileName = flag.String("f", "yamlFile.yaml", "Specify the name of YAML file")
+var fileName = flag.String("f", "jsonFile.json", "Specify the name of YAML file")
 
 func main() {
 	flag.Parse()
@@ -31,7 +31,7 @@ func main() {
 //- path: /urlshort-final
 //  url: https://github.com/gophercises/urlshort/tree/solution
 //`
-// Replacing above yaml variable with one read from a file
+	// Replacing above yaml variable with one read from a file
 	f, err := os.Open(*fileName)
 	if err != nil {
 		fmt.Println("Failed to read the file")
@@ -39,17 +39,32 @@ func main() {
 	}
 	defer f.Close()
 
-	yaml, err := ioutil.ReadAll(f)
+	file, err := ioutil.ReadAll(f)
 	if err != nil {
 		fmt.Println("Failed to read the file")
 		return
 	}
-	yamlHandler, err := urlshort.YAMLHandler([]byte(yaml), mapHandler)
-	if err != nil {
-		panic(err)
+	extensionRunes := []rune(*fileName)
+	extensionString := string(extensionRunes[len(extensionRunes)-4:])
+	switch extensionString {
+	case "yaml":
+		yamlHandler, err := urlshort.YAMLHandler([]byte(file), mapHandler)
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println("Starting the server on :8080")
+		http.ListenAndServe(":8080", yamlHandler)
+	case "json":
+		jsonHandler, err := urlshort.JSONHandler([]byte(file), mapHandler)
+		if err != nil{
+			panic(err)
+		}
+		fmt.Println("Starting the server on :8080")
+		http.ListenAndServe(":8080", jsonHandler)
+	default:
+		fmt.Println("Wrong file")
+		return
 	}
-	fmt.Println("Starting the server on :8080")
-	http.ListenAndServe(":8080", yamlHandler)
 }
 
 func defaultMux() *http.ServeMux {
